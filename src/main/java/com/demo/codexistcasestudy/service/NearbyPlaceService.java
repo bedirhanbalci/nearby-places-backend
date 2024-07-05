@@ -13,21 +13,25 @@ public class NearbyPlaceService {
 
     private final NearbyPlaceRepository nearbyPlaceRepository;
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate;
 
-    public NearbyPlaceService(NearbyPlaceRepository nearbyPlaceRepository) {
+    public NearbyPlaceService(NearbyPlaceRepository nearbyPlaceRepository, RestTemplate restTemplate) {
         this.nearbyPlaceRepository = nearbyPlaceRepository;
+        this.restTemplate = restTemplate;
     }
 
     @Value("${google.api.key}")
     private String apiKey;
+
+    @Value("${google.api.url}")
+    private String apiUrl;
 
     public String getNearbyPlaces(Double longitude, Double latitude, Double radius) {
         Optional<NearbyPlace> existingNearbyPlace = nearbyPlaceRepository.findByLongitudeAndLatitudeAndRadius(longitude, latitude, radius);
         if (existingNearbyPlace.isPresent()) {
             return existingNearbyPlace.get().getJsonResponse();
         } else {
-            String url = String.format("https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=%f,%f&radius=%f&key=%s", longitude, latitude, radius, apiKey);
+            String url = String.format(apiUrl, latitude, longitude, radius, apiKey);
 
             String response = restTemplate.getForObject(url, String.class);
 
