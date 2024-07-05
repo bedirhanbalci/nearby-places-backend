@@ -27,7 +27,7 @@ public class NearbyPlaceService {
         if (existingNearbyPlace.isPresent()) {
             return existingNearbyPlace.get().getJsonResponse();
         } else {
-            String url = String.format("https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=%f,%f&radius=%f&key=%s", latitude, longitude, radius, apiKey);
+            String url = String.format("https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=%f,%f&radius=%f&key=%s", longitude, latitude, radius, apiKey);
 
             String response = restTemplate.getForObject(url, String.class);
 
