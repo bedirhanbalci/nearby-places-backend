@@ -1,19 +1,20 @@
 package com.demo.codexistcasestudy.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Table(name = "nearby_places")
+import java.util.List;
+
+@Table(name = "main_places")
 @Entity
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class NearbyPlace {
+public class MainPlace {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -38,9 +39,7 @@ public class NearbyPlace {
     @Column(name = "vicinity")
     private String vicinity;
 
-    @ManyToOne
-    @JoinColumn(name = "main_place_id")
-    @JsonIgnore
-    private MainPlace mainPlace;
+    @OneToMany(mappedBy = "mainPlace", cascade = {CascadeType.PERSIST, CascadeType.REMOVE}, fetch = FetchType.LAZY)
+    private List<NearbyPlace> nearbyPlaceList;
 
 }
