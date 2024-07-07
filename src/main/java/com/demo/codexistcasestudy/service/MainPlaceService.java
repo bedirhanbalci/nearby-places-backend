@@ -5,7 +5,6 @@ import com.demo.codexistcasestudy.dto.PlacesInfoDto;
 import com.demo.codexistcasestudy.model.MainPlace;
 import com.demo.codexistcasestudy.model.NearbyPlace;
 import com.demo.codexistcasestudy.repository.MainPlaceRepository;
-import com.demo.codexistcasestudy.repository.NearbyPlaceRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
@@ -23,15 +22,15 @@ public class MainPlaceService {
 
     private final MainPlaceRepository mainPlaceRepository;
 
-    private final NearbyPlaceRepository nearbyPlaceRepository;
+    private final NearbyPlaceService nearbyPlaceService;
 
     private final RestTemplate restTemplate;
 
     private final ObjectMapper objectMapper;
 
-    public MainPlaceService(MainPlaceRepository mainPlaceRepository, NearbyPlaceRepository nearbyPlaceRepository, RestTemplate restTemplate, ObjectMapper objectMapper) {
+    public MainPlaceService(MainPlaceRepository mainPlaceRepository, NearbyPlaceService nearbyPlaceService, RestTemplate restTemplate, ObjectMapper objectMapper) {
         this.mainPlaceRepository = mainPlaceRepository;
-        this.nearbyPlaceRepository = nearbyPlaceRepository;
+        this.nearbyPlaceService = nearbyPlaceService;
         this.restTemplate = restTemplate;
         this.objectMapper = objectMapper;
     }
@@ -82,7 +81,7 @@ public class MainPlaceService {
                 nearbyPlace.setLatitude(placeInfoDto.geometry().location().lat());
                 nearbyPlace.setLongitude(placeInfoDto.geometry().location().lng());
                 nearbyPlaceList.add(nearbyPlace);
-                nearbyPlaceRepository.save(nearbyPlace);
+                nearbyPlaceService.save(nearbyPlace);
             });
 
             savedMainPlace.setNearbyPlaceList(nearbyPlaceList);
