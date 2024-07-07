@@ -1,5 +1,6 @@
 package com.demo.codexistcasestudy.dto;
 
+import com.demo.codexistcasestudy.model.MainPlace;
 import com.demo.codexistcasestudy.model.NearbyPlace;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -19,5 +20,12 @@ public class PlaceResponseDto {
     private String vicinity;
 
     private List<NearbyPlace> nearbyPlaceList;
+
+    public PlaceResponseDto(MainPlace mainPlace) {
+        this.place_id = mainPlace.getPlaceId();
+        this.name = mainPlace.getName();
+        this.vicinity = mainPlace.getVicinity();
+        this.nearbyPlaceList = mainPlace.getNearbyPlaceList();
+    }
 
 }

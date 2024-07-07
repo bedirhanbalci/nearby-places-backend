@@ -45,56 +45,66 @@ public class MainPlaceService {
     public PlaceResponseDto getNearbyPlaces(Double longitude, Double latitude, Double radius) throws JsonProcessingException {
 
         Optional<MainPlace> existingMainPlace = mainPlaceRepository.findByLongitudeAndLatitudeAndRadius(longitude, latitude, radius);
+
         if (existingMainPlace.isPresent()) {
-
-            PlaceResponseDto placeResponseDto = new PlaceResponseDto();
-            placeResponseDto.setPlace_id(existingMainPlace.get().getPlaceId());
-            placeResponseDto.setVicinity(existingMainPlace.get().getVicinity());
-            placeResponseDto.setName(existingMainPlace.get().getName());
-            placeResponseDto.setNearbyPlaceList(existingMainPlace.get().getNearbyPlaceList());
-            return placeResponseDto;
-
+            return new PlaceResponseDto(existingMainPlace.get());
         } else {
-            String url = String.format(apiUrl, latitude, longitude, radius, apiKey);
-
-            ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
-            PlacesInfoDto placesInfoDto = objectMapper.readValue(response.getBody(), PlacesInfoDto.class);
-
-            MainPlace mainPlace = new MainPlace();
-            mainPlace.setName(placesInfoDto.results().getFirst().name());
-            mainPlace.setPlaceId(placesInfoDto.results().getFirst().place_id());
-            mainPlace.setVicinity(placesInfoDto.results().getFirst().vicinity());
-            mainPlace.setLongitude(longitude);
-            mainPlace.setLatitude(latitude);
-            mainPlace.setRadius(radius);
-
-            MainPlace savedMainPlace = mainPlaceRepository.save(mainPlace);
-            mainPlaceRepository.flush();
-
-            List<NearbyPlace> nearbyPlaceList = new ArrayList<>();
-            placesInfoDto.results().forEach(placeInfoDto -> {
-                NearbyPlace nearbyPlace = new NearbyPlace();
-                nearbyPlace.setMainPlace(savedMainPlace);
-                nearbyPlace.setPlaceId(placeInfoDto.place_id());
-                nearbyPlace.setVicinity(placeInfoDto.vicinity());
-                nearbyPlace.setName(placeInfoDto.name());
-                nearbyPlace.setLatitude(placeInfoDto.geometry().location().lat());
-                nearbyPlace.setLongitude(placeInfoDto.geometry().location().lng());
-                nearbyPlaceList.add(nearbyPlace);
-                nearbyPlaceService.save(nearbyPlace);
-            });
-
-            savedMainPlace.setNearbyPlaceList(nearbyPlaceList);
-
-            this.mainPlaceRepository.save(savedMainPlace);
-
-            PlaceResponseDto placeResponseDto = new PlaceResponseDto();
-            placeResponseDto.setPlace_id(savedMainPlace.getPlaceId());
-            placeResponseDto.setVicinity(savedMainPlace.getVicinity());
-            placeResponseDto.setName(savedMainPlace.getName());
-            placeResponseDto.setNearbyPlaceList(nearbyPlaceList);
-            return placeResponseDto;
+            return fetchNearPlacesByLocation(longitude, latitude, radius);
         }
+    }
+
+    private PlaceResponseDto fetchNearPlacesByLocation(Double longitude, Double latitude, Double radius) throws JsonProcessingException {
+
+        String url = String.format(apiUrl, latitude, longitude, radius, apiKey);
+        ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
+        PlacesInfoDto placesInfoDto = objectMapper.readValue(response.getBody(), PlacesInfoDto.class);
+        return convertToMainPlaceAndSave(placesInfoDto, longitude, latitude, radius);
 
     }
+
+    private PlaceResponseDto convertToMainPlaceAndSave(PlacesInfoDto placesInfoDto, Double longitude, Double latitude, Double radius) {
+
+        MainPlace mainPlace = new MainPlace();
+        mainPlace.setName(placesInfoDto.results().getFirst().name());
+        mainPlace.setPlaceId(placesInfoDto.results().getFirst().place_id());
+        mainPlace.setVicinity(placesInfoDto.results().getFirst().vicinity());
+        mainPlace.setLongitude(longitude);
+        mainPlace.setLatitude(latitude);
+        mainPlace.setRadius(radius);
+        MainPlace savedMainPlace = mainPlaceRepository.save(mainPlace);
+        return determineNearPlaceAndSave(placesInfoDto, savedMainPlace);
+
+    }
+
+    private PlaceResponseDto determineNearPlaceAndSave(PlacesInfoDto placesInfoDto, MainPlace savedMainPlace) {
+
+        List<NearbyPlace> nearbyPlaceList = new ArrayList<>();
+        placesInfoDto.results().forEach(placeInfoDto -> {
+            NearbyPlace nearbyPlace = new NearbyPlace();
+            nearbyPlace.setMainPlace(savedMainPlace);
+            nearbyPlace.setPlaceId(placeInfoDto.place_id());
+            nearbyPlace.setVicinity(placeInfoDto.vicinity());
+            nearbyPlace.setName(placeInfoDto.name());
+            nearbyPlace.setLatitude(placeInfoDto.geometry().location().lat());
+            nearbyPlace.setLongitude(placeInfoDto.geometry().location().lng());
+            nearbyPlaceList.add(nearbyPlace);
+            nearbyPlaceService.save(nearbyPlace);
+        });
+
+        savedMainPlace.setNearbyPlaceList(nearbyPlaceList);
+
+        this.mainPlaceRepository.save(savedMainPlace);
+
+        return convertToPlaceResponse(savedMainPlace, nearbyPlaceList);
+
+    }
+
+    private PlaceResponseDto convertToPlaceResponse(MainPlace savedMainPlace, List<NearbyPlace> nearbyPlaceList) {
+
+        PlaceResponseDto placeResponseDto = new PlaceResponseDto(savedMainPlace);
+        placeResponseDto.setNearbyPlaceList(nearbyPlaceList);
+        return placeResponseDto;
+
+    }
+
 }
