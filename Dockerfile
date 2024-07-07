@@ -1,7 +1,9 @@
-FROM maven:3.8.6-openjdk-21-slim AS build
+FROM openjdk:21-jdk-slim AS build
+RUN apt-get update && apt-get install -y maven
 WORKDIR /app
 COPY . .
 RUN mvn clean package -DskipTests
+
 
 FROM openjdk:21-jdk-slim
 COPY --from=build /app/target/*.jar demo.jar
