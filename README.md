@@ -2,6 +2,11 @@
 
 ## UI
 
+![Screenshot 1](https://github.com/bedirhanbalci/nearby-places-backend/assets/61194064/1fdae6f1-679b-42db-9b84-475a4969589f)
+
+![Screenshot 2](https://github.com/bedirhanbalci/nearby-places-backend/assets/61194064/08ad6e50-65e4-4851-87f8-0d39e227cf19)
+
+![Screenshot 3](https://github.com/bedirhanbalci/nearby-places-backend/assets/61194064/6adb811d-13ae-49a2-8474-0fdaf9b35f80)
 
 ## Features
 
